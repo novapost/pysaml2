@@ -56,6 +56,11 @@ class FakeConfig():
         self.cert_file = pub_key
         self.key_file = "pkcs11://%s:0/test?pin=secret1" % P11_MODULE
         self.debug = False
+        self.cert_handler_extra_class = None
+        self.generate_cert_info = None
+        self.tmp_cert_file = None
+        self.tmp_key_file = None
+        self.validate_certificate = None
 
 
 class TestPKCS11():

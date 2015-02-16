@@ -94,6 +94,11 @@ class FakeConfig():
     cert_file = PUB_KEY
     key_file = PRIV_KEY
     debug = False
+    cert_handler_extra_class = None
+    generate_cert_info = None
+    tmp_cert_file = None
+    tmp_key_file = None
+    validate_certificate = None
 
 class TestSecurity():
 
