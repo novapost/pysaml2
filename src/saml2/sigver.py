@@ -657,7 +657,7 @@ class CryptoBackend():
         raise NotImplementedError()
 
     def validate_signature(self, enctext, cert_file, cert_type, node_name,
-                           node_id, node_xpath, id_attr):
+                           node_id, id_attr, node_xpath):
         raise NotImplementedError()
 
 
@@ -743,7 +743,7 @@ class CryptoBackendXmlSec1(CryptoBackend):
             raise SigverError("Signing failed")
 
     def validate_signature(self, signedtext, cert_file, cert_type, node_name,
-                           node_id, node_xpath, id_attr):
+                           node_id, id_attr, node_xpath):
         """
         Validate signature on XML document.
 
@@ -861,7 +861,7 @@ class CryptoBackendXMLSecurity(CryptoBackend):
         return lxml.etree.tostring(signed, xml_declaration=True)
 
     def validate_signature(self, signedtext, cert_file, cert_type, node_name,
-                           node_id, node_xpath, id_attr):
+                           node_id, id_attr, node_xpath):
         """
         Validate signature on XML document.
 
@@ -1129,8 +1129,8 @@ class SecurityContext(object):
                                               cert_type=cert_type,
                                               node_name=node_name,
                                               node_id=node_id,
-                                              node_xpath=node_xpath,
-                                              id_attr=id_attr)
+                                              id_attr=id_attr,
+                                              node_xpath=node_xpath)
 
     def _check_signature(self, decoded_xml, item, node_name=NODE_NAME,
                          origdoc=None, id_attr="", must=False,
@@ -1179,24 +1179,24 @@ class SecurityContext(object):
                         if self.verify_signature(origdoc, pem_file,
                                                  node_name=node_name,
                                                  node_id=item.id,
-                                                 node_xpath=node_xpath,
-                                                 id_attr=id_attr):
+                                                 id_attr=id_attr,
+                                                 node_xpath=node_xpath):
                             verified = True
                             break
                     except Exception:
                         if self.verify_signature(decoded_xml, pem_file,
                                                  node_name=node_name,
                                                  node_id=item.id,
-                                                 node_xpath=node_xpath,
-                                                 id_attr=id_attr):
+                                                 id_attr=id_attr,
+                                                 node_xpath=node_xpath):
                             verified = True
                             break
                 else:
                     if self.verify_signature(decoded_xml, pem_file,
                                              node_name=node_name,
                                              node_id=item.id,
-                                             node_xpath=node_xpath,
-                                             id_attr=id_attr):
+                                             id_attr=id_attr,
+                                             node_xpath=node_xpath):
                         verified = True
                         break
             except XmlsecError, exc:
@@ -1225,7 +1225,7 @@ class SecurityContext(object):
                                      node_xpath=node_xpath)
 
     def correctly_signed_message(self, decoded_xml, msgtype, must=False,
-                                 origdoc=None):
+                                 origdoc=None, node_xpath=None):
         """Check if a request is correctly signed, if we have metadata for
         the entity that sent the info use that, if not use the key that are in
         the message if any.
@@ -1254,91 +1254,111 @@ class SecurityContext(object):
 
         return self._check_signature(decoded_xml, msg,
                                      node_name=class_name(msg),
-                                     origdoc=origdoc, must=must)
+                                     origdoc=origdoc, must=must,
+                                     node_xpath=node_xpath)
 
     def correctly_signed_authn_request(self, decoded_xml, must=False,
-                                       origdoc=None):
+                                       origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "authn_request",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_authn_query(self, decoded_xml, must=False,
-                                     origdoc=None):
+                                     origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "authn_query",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_logout_request(self, decoded_xml, must=False,
-                                        origdoc=None):
+                                        origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "logout_request",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_logout_response(self, decoded_xml, must=False,
-                                         origdoc=None):
+                                         origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "logout_response",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_attribute_query(self, decoded_xml, must=False,
-                                         origdoc=None):
+                                         origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "attribute_query",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_authz_decision_query(self, decoded_xml, must=False,
-                                              origdoc=None):
+                                              origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "authz_decision_query", must,
-                                             origdoc)
+                                             origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_authz_decision_response(self, decoded_xml, must=False,
-                                                 origdoc=None):
+                                                 origdoc=None,
+                                                 node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "authz_decision_response", must,
-                                             origdoc)
+                                             origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_name_id_mapping_request(self, decoded_xml, must=False,
-                                                 origdoc=None):
+                                                 origdoc=None,
+                                                 node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "name_id_mapping_request",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_name_id_mapping_response(self, decoded_xml, must=False,
-                                                  origdoc=None):
+                                                  origdoc=None,
+                                                  node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "name_id_mapping_response",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_artifact_request(self, decoded_xml, must=False,
-                                          origdoc=None):
+                                          origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "artifact_request",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_artifact_response(self, decoded_xml, must=False,
-                                           origdoc=None):
+                                           origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "artifact_response",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_manage_name_id_request(self, decoded_xml, must=False,
-                                                origdoc=None):
+                                                origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "manage_name_id_request",
-                                             must, origdoc)
+                                             must, origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_manage_name_id_response(self, decoded_xml, must=False,
-                                                 origdoc=None):
+                                                 origdoc=None,
+                                                 node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "manage_name_id_response", must,
-                                             origdoc)
+                                             origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_assertion_id_request(self, decoded_xml, must=False,
-                                              origdoc=None):
+                                              origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml,
                                              "assertion_id_request", must,
-                                             origdoc)
+                                             origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_assertion_id_response(self, decoded_xml, must=False,
-                                               origdoc=None):
+                                               origdoc=None, node_xpath=None):
         return self.correctly_signed_message(decoded_xml, "assertion", must,
-                                             origdoc)
+                                             origdoc,
+                                             node_xpath=node_xpath)
 
     def correctly_signed_response(self, decoded_xml, must=False, origdoc=None,
                                   node_xpath=None):
