@@ -322,6 +322,64 @@ class TestClient:
         print my_name
         assert my_name == "urn:mace:example.com:saml:roland:sp"
 
+    def test_response_parsed_with_node_xpath_param(self):
+        IDP = "urn:mace:example.com:saml:roland:idp"
+
+        ava = { "givenName": ["Derek"], "surName": ["Jeter"],
+                "mail": ["derek@nyy.mlb.com"], "title":["The man"]}
+
+        nameid_policy=samlp.NameIDPolicy(allow_create="false",
+                                         format=saml.NAMEID_FORMAT_PERSISTENT)
+
+        # signed response
+        resp = self.server.create_authn_response(
+            identity=ava,
+            in_response_to="id1",
+            destination="http://lingon.catalogix.se:8087/",
+            sp_entity_id="urn:mace:example.com:saml:roland:sp",
+            name_id_policy=nameid_policy,
+            userid="foba0001@example.com",
+            authn=AUTHN,
+            sign_response=True,
+            sign_assertion=True)
+
+        resp_str = "%s" % resp
+
+        resp_str = base64.encodestring(resp_str)
+
+        node_xpath = "/*/*[local-name()='Signature']"
+
+        authn_response = self.client.parse_authn_request_response(
+            resp_str, BINDING_HTTP_POST,
+            {"id1": "http://foo.example.com/service"},
+            node_xpath=node_xpath)
+
+        assert authn_response is not None
+        assert authn_response.issuer() == IDP
+        assert authn_response.response.assertion[0].issuer.text == IDP
+
+        node_xpath = "/*"
+
+        authn_response = self.client.parse_authn_request_response(
+            resp_str, BINDING_HTTP_POST,
+            {"id1": "http://foo.example.com/service"},
+            node_xpath=node_xpath)
+
+        assert authn_response is not None
+        assert authn_response.issuer() == IDP
+        assert authn_response.response.assertion[0].issuer.text == IDP
+
+        # invalid xpath
+        node_xpath = "noop"
+
+        authn_response = self.client.parse_authn_request_response(
+            resp_str, BINDING_HTTP_POST,
+            {"id1": "http://foo.example.com/service"},
+            node_xpath=node_xpath)
+
+        assert authn_response is None
+
+
 # Below can only be done with dummy Server
 
 IDP = "urn:mace:example.com:saml:roland:idp"
