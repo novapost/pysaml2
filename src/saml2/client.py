@@ -79,16 +79,21 @@ class Saml2Client(Base):
 
         destination = self._sso_location(entityid, binding)
 
-        req = self.create_authn_request(destination, vorg, scoping,
-                                        response_binding, nameid_format,
-                                        consent, extensions, sign, **kwargs)
+        req = self.create_authn_request(destination, vorg=vorg,
+                                        scoping=scoping,
+                                        binding=response_binding,
+                                        nameid_format=nameid_format,
+                                        consent=consent,
+                                        extensions=extensions, sign=sign,
+                                        **kwargs)
         _req_str = "%s" % req
 
         logger.info("AuthNReq: %s" % _req_str)
 
         info = self.apply_binding(binding, _req_str, destination, relay_state)
 
-        return req.id, info
+        # no id if signed but a string
+        return getattr(req, 'id', None), info
 
     def global_logout(self, name_id, reason="", expire=None, sign=None):
         """ More or less a layer of indirection :-/
